@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <TargetFrameworks>net7.0-windows;net6.0-windows;net481</TargetFrameworks>
+    <ApplicationIcon>Resources\watchDog.ico</ApplicationIcon>
+  </PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)'=='net481'">
+		<LangVersion>10.0</LangVersion>
+	</PropertyGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net481'">
+		<Reference Include="System.Windows.Forms" />
+	</ItemGroup>
+  <ItemGroup>
+    <None Remove="Resources\*.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\*.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.1.0" />
+    <PackageReference Include="Enums.NET" Version="4.0.1" />
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
+    <PackageReference Include="Serilog" Version="2.12.0" />
+    <PackageReference Include="Serilog.Sinks.Async" Version="1.5.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="System.Management" Version="7.0.0" />
+    <PackageReference Include="System.Text.Json" Version="7.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ValueConverter\" />
+  </ItemGroup>
+
+</Project>

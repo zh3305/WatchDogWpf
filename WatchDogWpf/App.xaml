@@ -1,0 +1,12 @@
+﻿<Application x:Class="WatchDogWpf.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:WatchDogWpf"
+             xmlns:primitives="clr-namespace:System.Windows.Controls.Ribbon.Primitives;assembly=System.Windows.Controls.Ribbon"
+             xmlns:valueConverter="clr-namespace:WatchDogWpf.ValueConverter"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+
+        <valueConverter:EnumValueConverter x:Key="EnumValueConverter" />
+    </Application.Resources>
+</Application>
