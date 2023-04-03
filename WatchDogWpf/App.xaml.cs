@@ -42,7 +42,7 @@ namespace WatchDogWpf
         {
             Log.Logger.Information("程序退出 {0}", nameof(WatchDogWpf));
             SystemConfig.Instance.Save();
-#if !NET481
+#if !NET481&&!NET48
             await Log.CloseAndFlushAsync();
 #endif
         }

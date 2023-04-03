@@ -257,7 +257,7 @@ public partial class MainWindowViewModel : ObservableObject, INotifyPropertyChan
         Process.Start("explorer.exe", appPath);
     }
 
-    private void OutLog(string content, string type = "主进程")
+    private void OutLog(string content, string type = "主进程", Exception exception=null)
     {
         Application.Current.Dispatcher.Invoke(new Action(() =>
         {
@@ -268,7 +268,7 @@ public partial class MainWindowViewModel : ObservableObject, INotifyPropertyChan
             }
 
             LogEntries.Add($"{DateTime.Now:HH:mm:ss.fff}	 [{type}]	{content}");
-            Log.Information("[{type}]	{content}", type, content);
+            Log.Information(exception,"[{type}]	{content}", type, content);
         }));
     }
 
@@ -294,7 +294,9 @@ public partial class MainWindowViewModel : ObservableObject, INotifyPropertyChan
 
         // 创建进程启动信息
         var startInfo = new ProcessStartInfo();
+        startInfo.UseShellExecute = false;
         startInfo.FileName = processView.Config.AppPath;
+        startInfo.WorkingDirectory= Path.GetDirectoryName(processView.Config.AppPath);
         // 设置自定义环境变量
         startInfo.EnvironmentVariables["FeedingMode"] = processView.Config.FeedingMode.AsString(EnumFormat.Name);
         startInfo.EnvironmentVariables["FeedingInterval"] = SystemConfig.Instance.WATCHDOG_INTERVAL.ToString();//processView.Config.FeedingInterval.ToString()
@@ -304,16 +306,24 @@ public partial class MainWindowViewModel : ObservableObject, INotifyPropertyChan
             startInfo.Arguments = processView.Config.Arguments;
         }
 
-        var processViewProcess = Process.Start(startInfo);
-        if (processViewProcess != null)
+        try
         {
-            processView.Process = processViewProcess;
-            processView.StartTime = processView.Process.StartTime;
-            processView.Config.Title = processView.Process.ProcessName;
-            OutLog($"进程:{processView.Config.Title} 已启动", "启动进程");
-            return true;
-        }
 
+            var processViewProcess = Process.Start(startInfo);
+            if (processViewProcess != null)
+            {
+                processView.Process = processViewProcess;
+                processView.StartTime = processView.Process.StartTime;
+                processView.Config.Title = processView.Process.ProcessName;
+                OutLog($"进程:{processView.Config.Title} 已启动", "启动进程");
+                return true;
+            }
+
+        }
+        catch (Exception e)
+        {
+            OutLog($"进程:{processView.Config.Title} 启动失败!"+e.Message, "启动进程",e);
+        }
         return false;
     }
 

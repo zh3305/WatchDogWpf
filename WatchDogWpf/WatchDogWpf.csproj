@@ -4,13 +4,13 @@
     <OutputType>WinExe</OutputType>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
-    <TargetFrameworks>net7.0-windows;net6.0-windows;net481</TargetFrameworks>
+    <TargetFrameworks>net7.0-windows;net6.0-windows;net481;net48</TargetFrameworks>
     <ApplicationIcon>Resources\watchDog.ico</ApplicationIcon>
   </PropertyGroup>
-	<PropertyGroup Condition="'$(TargetFramework)'=='net481'">
+	<PropertyGroup Condition="'$(TargetFramework)'=='net481' Or '$(TargetFramework)' == 'net48'">
 		<LangVersion>10.0</LangVersion>
 	</PropertyGroup>
-	<ItemGroup Condition="'$(TargetFramework)' == 'net481'">
+	<ItemGroup Condition="'$(TargetFramework)' == 'net481'  Or '$(TargetFramework)' == 'net48'">
 		<Reference Include="System.Windows.Forms" />
 	</ItemGroup>
   <ItemGroup>
