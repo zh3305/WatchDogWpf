@@ -176,7 +176,10 @@ namespace WatchDogWpf
         private void OnClosing(object? sender, CancelEventArgs e)
         {
             // 关闭状态栏图标
-            notifyIcon.Visible = false;
+            if (!e.Cancel)
+            {
+                notifyIcon.Visible = false;
+            }
         }
         private void ProcessConfigView_OnDrop(object sender, DragEventArgs e)
         {
