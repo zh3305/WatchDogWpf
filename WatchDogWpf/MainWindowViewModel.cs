@@ -70,9 +70,9 @@ public partial class MainWindowViewModel : ObservableObject, INotifyPropertyChan
             return;
         }
 
-        Processes.Remove(SelectedProcess);
         SystemConfig.Instance.ProcessConfigs.Remove(SelectedProcess.Config);
         SystemConfig.Instance.Save();
+        Processes.Remove(SelectedProcess);
     }
 
     [RelayCommand]
