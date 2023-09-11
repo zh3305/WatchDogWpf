@@ -14,7 +14,7 @@ public sealed class SystemConfig : DictionaryBasedConfig
     // 定义心跳检测周期，单位为毫秒
     public int WATCHDOG_INTERVAL{ get; set; } = 1000;
 
-    internal static string Path { get; set; } = "Config.json";
+    internal static string Path { get; set; } = AppDomain.CurrentDomain.BaseDirectory+"/Config.json";
     public List<ProcessConfig> ProcessConfigs { get; set; } = new List<ProcessConfig>();
     //是否自启动
     public bool IsAutoStart { get; set; } = false;
@@ -36,8 +36,7 @@ public sealed class SystemConfig : DictionaryBasedConfig
             {
                 try
                 {
-                    var readAllText = File.ReadAllText("Config.json");
-                    Instance = JsonSerializer.Deserialize<SystemConfig>(readAllText) ?? new SystemConfig();
+                    Instance = JsonSerializer.Deserialize<SystemConfig>(File.ReadAllText(Path)) ?? new SystemConfig();
                 }
                 catch (Exception ex)
                 {

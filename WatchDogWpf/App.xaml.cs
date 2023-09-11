@@ -27,7 +27,7 @@ namespace WatchDogWpf
 #endif
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                 .Enrich.FromLogContext()
-                .WriteTo.File(@"Logs/.log", rollingInterval: RollingInterval.Day, restrictedToMinimumLevel: LogEventLevel.Information, retainedFileCountLimit: 7)
+                .WriteTo.File(AppDomain.CurrentDomain.BaseDirectory+@"Logs/.log", rollingInterval: RollingInterval.Day, restrictedToMinimumLevel: LogEventLevel.Information, retainedFileCountLimit: 7)
                 // .WriteTo.Async(c => 
                 //     c.File($"Logs/{DateTime.Now:yyyy-MM-dd}logs.txt", restrictedToMinimumLevel: LogEventLevel.Information)
                 //     )
