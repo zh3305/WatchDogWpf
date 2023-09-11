@@ -221,11 +221,18 @@ public partial class MainWindowViewModel : ObservableObject, INotifyPropertyChan
                         {
                             //任务管理器的 CPU 占用率计算会比较复杂，需要考虑许多因素。而我们这里的简单计算方式只是取当前进程在 CPU 上消耗的时间片比例，可能与任务管理器的计算方式不同，因此存在差距。
                             processViewModel.Cpu = double.Parse(obj["PercentProcessorTime"].ToString());
-                            processViewModel.Memory =
-                                double.Parse(obj["WorkingSetPrivate"].ToString()) / 1024 / 1024;
+                            processViewModel.Memory = double.Parse(obj["WorkingSetPrivate"].ToString()) / 1024 / 1024;
                         }
                     }
                 }
+
+                //Cpu 占用过高自动重启
+                // if (processViewModel.Cpu > SystemConfig.Instance.CpuThreshold)
+                // {
+                //     OutLog($"进程:{processViewModel.Config.Title} CPU 占用过高,重启进程", "CPU 占用过高");
+                //     Kill(processViewModel);
+                //     continue;
+                // }
             }
             catch
             {

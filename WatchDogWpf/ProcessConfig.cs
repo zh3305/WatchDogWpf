@@ -4,6 +4,7 @@ using EnumsNET;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -12,9 +13,38 @@ namespace WatchDogWpf;
 //进程配置类
 public sealed partial class ProcessConfig : ObservableValidator
 {
-    [ObservableProperty]
     [Required(ErrorMessage = "程序路径不能为空")]
     private string _appPath = "";
+    public string AppPath
+    {
+        get => _appPath;
+        set
+        {
+            if (_appPath!=value)
+            {
+                OnPropertyChanging(nameof(AppPath));
+                //判断是否是快捷方式
+                if (Path.GetExtension(value)?.Equals(".lnk", StringComparison.OrdinalIgnoreCase) ==
+                    true)
+                {
+                    Type shellObjectType = Type.GetTypeFromProgID("WScript.Shell");
+                    dynamic windowsShell = Activator.CreateInstance(shellObjectType);
+                    var shortcut = windowsShell.CreateShortcut(value);
+                    var file = shortcut.TargetPath;
+
+                    _appPath = file;
+                    // Release the COM objects
+                    shortcut = null;
+                    windowsShell = null;
+                }
+                else
+                {
+                    _appPath = value;
+                }
+                OnPropertyChanged(nameof(AppPath));
+            }
+        }
+    }
 
     //运行参数
     [ObservableProperty]

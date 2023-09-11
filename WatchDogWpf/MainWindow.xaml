@@ -43,19 +43,19 @@
                 <DataGridTemplateColumn Header="启用" Width="60">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <ToggleButton IsChecked="{Binding Config.IsEnable, Mode=TwoWay}"
+                            <CheckBox IsChecked="{Binding Config.IsEnable, Mode=TwoWay}"
                                           Command="{Binding ToggleEnableCommand}">
-                                <ToggleButton.Style>
-                                    <Style TargetType="ToggleButton">
-                                        <Setter Property="Content" Value="禁用"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Config.IsEnable}" Value="True">
-                                                <Setter Property="Content" Value="启用"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ToggleButton.Style>
-                            </ToggleButton>
+                                <!-- <ToggleButton.Style> -->
+                                <!--     <Style TargetType="ToggleButton"> -->
+                                <!--         <Setter Property="Content" Value="禁用"/> -->
+                                <!--         <Style.Triggers> -->
+                                <!--             <DataTrigger Binding="{Binding Config.IsEnable}" Value="True"> -->
+                                <!--                 <Setter Property="Content" Value="启用"/> -->
+                                <!--             </DataTrigger> -->
+                                <!--         </Style.Triggers> -->
+                                <!--     </Style> -->
+                                <!-- </ToggleButton.Style> -->
+                            </CheckBox>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System;
+using System.Windows;
 
 namespace WatchDogWpf;
 
@@ -17,12 +19,13 @@ public partial class ProcessConfigView : Window
 
     private void Save_OnClick(object sender, RoutedEventArgs e)
     {
-        var processConfig = (ProcessConfig)   this.DataContext;
+        var processConfig = (ProcessConfig)this.DataContext;
         if (!processConfig.Validate())
         {
             MessageBox.Show(string.Join("\r\n", processConfig.GetErrors()));
             return;
         }
+
         this.DialogResult = true;
         this.Close();
     }
@@ -34,12 +37,14 @@ public partial class ProcessConfigView : Window
         {
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             if (files.Length > 0)
-            { 
-                var processConfig = (ProcessConfig)   this.DataContext;
-                processConfig. AppPath = files[0];
+            {
+                var processConfig = (ProcessConfig)this.DataContext;
+                processConfig.AppPath = files[0];
+               
             }
         }
     }
+
 
     private void SelectProcessButton_Click(object sender, RoutedEventArgs e)
     {
@@ -53,10 +58,9 @@ public partial class ProcessConfigView : Window
             if (selectedProcess != null)
             {
                 // 更新界面上的信息
-                var processConfig = (ProcessConfig)   this.DataContext;
-                processConfig.AppPath= selectedProcess.MainModule.FileName;
+                var processConfig = (ProcessConfig)this.DataContext;
+                processConfig.AppPath = selectedProcess.MainModule.FileName;
                 processConfig.Title = selectedProcess.ProcessName;
-
             }
         }
     }
