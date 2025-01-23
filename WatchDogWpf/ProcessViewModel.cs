@@ -1,14 +1,18 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+ï»¿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Serilog;
 using System;
 using System.Diagnostics;
 using System.Reflection;
 using WatchDogWpf.Config;
+using System.IO;
 
 namespace WatchDogWpf;
 
 public partial class ProcessViewModel : ObservableObject
 {
+    private static readonly ILogger _logger = Log.ForContext<ProcessViewModel>();
+
     [ObservableProperty]
     private ProcessConfig _config;
 
@@ -24,7 +28,7 @@ public partial class ProcessViewModel : ObservableObject
 
     private double _memory;
 
-    //´í¹ýÎ¹¹·´ÎÊý
+    //é”™è¿‡å–‚ç‹—æ¬¡æ•°
     [ObservableProperty]
     private int _missCount = 0;
 
@@ -39,7 +43,7 @@ public partial class ProcessViewModel : ObservableObject
     {
         _process = process;
         _startTime = process.StartTime;
-        // »ñÈ¡ÐÄÌøº¯ÊýµÄµØÖ·
+        // èŽ·å–å¿ƒè·³å‡½æ•°çš„åœ°å€
         _heartbeatAddress = GetHeartbeatAddress();
     }
 
@@ -83,16 +87,20 @@ public partial class ProcessViewModel : ObservableObject
     public Process Process
     {
         get => _process;
-        set => _process = value;
+        set
+        {
+            SetProperty(ref _process, value);
+            OnPropertyChanged(nameof(IsRunning));
+        }
     }
 
     public IntPtr ProcessHandle => Process?.Handle ?? IntPtr.Zero;
     private IntPtr GetHeartbeatAddress()
     {
-        // »ñÈ¡µ±Ç°½ø³ÌÖÐµÄËùÓÐModule
+        // èŽ·å–å½“å‰è¿›ç¨‹ä¸­çš„æ‰€æœ‰Module
         var modules = Process.GetCurrentProcess().Modules;
 
-        // »ñÈ¡ÐÄÌøº¯ÊýµÄMethodInfo
+        // èŽ·å–å¿ƒè·³å‡½æ•°çš„MethodInfo
         var module = modules[0];
         var moduleAssembly = Assembly.LoadFrom(module.FileName);
         var moduleType = moduleAssembly.GetType("MyProgram.Program");
@@ -103,7 +111,7 @@ public partial class ProcessViewModel : ObservableObject
             throw new InvalidOperationException("Heartbeat method not found.");
         }
 
-        // »ñÈ¡ÐÄÌøº¯ÊýµÄµØÖ·
+        // èŽ·å–å¿ƒè·³å‡½æ•°çš„åœ°å€
         var heartbeatAddress = heartbeatMethod.MethodHandle.GetFunctionPointer();
 
         return heartbeatAddress;
@@ -115,4 +123,31 @@ public partial class ProcessViewModel : ObservableObject
         Config.IsEnable = !Config.IsEnable;
         SystemConfig.Instance.Save();
     }
+
+    public bool IsRunning
+    {
+        get
+        {
+            try
+            {
+                if (Process == null && Config != null && !string.IsNullOrEmpty(Config.Title))
+                {
+                    // å°è¯•é€šè¿‡è¿›ç¨‹åæŸ¥æ‰¾è¿›ç¨‹
+                    var processName = Path.GetFileNameWithoutExtension(Config.Title);
+                    var processes = System.Diagnostics.Process.GetProcessesByName(processName);
+                    if (processes.Length > 0)
+                    {
+                        Process = processes[0];
+                    }
+                }
+                return Process != null && !Process.HasExited;
+            }
+            catch
+            {
+                Process = null;
+                return false;
+            }
+        }
+    }
+
 }

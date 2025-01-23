@@ -229,13 +229,11 @@
                                                     <Border.Style>
                                                         <Style TargetType="Border">
                                                             <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Process.HasExited}" Value="True">
+                                                                <DataTrigger Binding="{Binding IsRunning}" Value="False">
                                                                     <Setter Property="Background" Value="#FFEBEE"/>
-                                                                    <Setter Property="TextBlock.Foreground" Value="#F44336"/>
                                                                 </DataTrigger>
-                                                                <DataTrigger Binding="{Binding Process.HasExited}" Value="False">
+                                                                <DataTrigger Binding="{Binding IsRunning}" Value="True">
                                                                     <Setter Property="Background" Value="#E8F5E9"/>
-                                                                    <Setter Property="TextBlock.Foreground" Value="#4CAF50"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -244,11 +242,13 @@
                                                         <TextBlock.Style>
                                                             <Style TargetType="TextBlock">
                                                                 <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding Process.HasExited}" Value="True">
+                                                                    <DataTrigger Binding="{Binding IsRunning}" Value="False">
                                                                         <Setter Property="Text" Value="已停止"/>
+                                                                        <Setter Property="Foreground" Value="#F44336"/>
                                                                     </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding Process.HasExited}" Value="False">
+                                                                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
                                                                         <Setter Property="Text" Value="运行中"/>
+                                                                        <Setter Property="Foreground" Value="#4CAF50"/>
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>

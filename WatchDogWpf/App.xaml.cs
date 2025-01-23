@@ -9,6 +9,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 using WatchDogWpf.Config;
+using System.Threading;
 
 namespace WatchDogWpf
 {
@@ -17,8 +18,23 @@ namespace WatchDogWpf
     /// </summary>
     public partial class App : Application
     {
+        private static Mutex _mutex = null;
+        private const string MutexName = "WatchDogWpf_SingleInstance_Mutex";
+
         protected override void OnStartup(StartupEventArgs e)
         {
+            bool createdNew;
+            _mutex = new Mutex(true, MutexName, out createdNew);
+
+            if (!createdNew)
+            {
+                // 程序已经在运行
+                MessageBox.Show("程序已经在运行中", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                _mutex = null;
+                Current.Shutdown();
+                return;
+            }
+
             Log.Logger = new LoggerConfiguration()
 #if DEBUG
                 .MinimumLevel.Debug()
@@ -45,6 +61,12 @@ namespace WatchDogWpf
 #if !NET481&&!NET48
             await Log.CloseAndFlushAsync();
 #endif
+            if (_mutex != null)
+            {
+                _mutex.ReleaseMutex();
+                _mutex.Dispose();
+            }
+            base.OnExit(e);
         }
     }
 }

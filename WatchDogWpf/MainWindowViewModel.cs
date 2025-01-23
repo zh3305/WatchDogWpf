@@ -37,6 +37,7 @@ public partial class MainWindowViewModel : ObservableObject, INotifyPropertyChan
     public SeriesCollection CpuSeries { get; set; }
     public SeriesCollection MemorySeries { get; set; }
 
+
     public MainWindowViewModel()
     {
         Processes = new ObservableCollection<ProcessViewModel>();
@@ -82,6 +83,7 @@ public partial class MainWindowViewModel : ObservableObject, INotifyPropertyChan
         _performanceTimer.Elapsed += OnPerformanceTimer;
         _performanceTimer.AutoReset = true;
         _performanceTimer.Start();
+
     }
 
     [RelayCommand]
@@ -184,7 +186,8 @@ public partial class MainWindowViewModel : ObservableObject, INotifyPropertyChan
                 if (processViewModel.Process == null || processViewModel.Process.HasExited)
                 {
                     //²éÕÒ½ø³Ì
-                    Process[] processes = Process.GetProcessesByName(processViewModel.Config.Title);
+                    var processName = Path.GetFileNameWithoutExtension(processViewModel.Config.Title);
+                    Process[] processes = Process.GetProcessesByName(processName);
                     if (processes.Length > 0)
                     {
                         processViewModel.Process = processes[0];
