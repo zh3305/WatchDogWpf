@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using EnumsNET;
+using LiveCharts.Wpf;
 using Serilog;
 using System;
 using System.Collections.ObjectModel;
@@ -11,7 +12,11 @@ using System.Linq;
 using System.Management;
 using System.Timers;
 using System.Windows;
+using LiveCharts;
 using WatchDogWpf.Config;
+using System.Drawing;
+using System.Diagnostics.PerformanceData;
+using System.Windows.Media; // 使用WPF的Color
 
 namespace WatchDogWpf;
 
@@ -24,6 +29,13 @@ public partial class MainWindowViewModel : ObservableObject, INotifyPropertyChan
 
     [ObservableProperty] private ProcessViewModel _selectedProcess;
     private readonly Timer _watchdogTimer;
+    private readonly Timer _performanceTimer;
+    private readonly PerformanceCounter _cpuCounter;
+    private readonly PerformanceCounter _memoryCounter;
+    private const int MAX_POINTS = 30; // 显示最近30个数据点
+
+    public SeriesCollection CpuSeries { get; set; }
+    public SeriesCollection MemorySeries { get; set; }
 
     public MainWindowViewModel()
     {
@@ -35,6 +47,41 @@ public partial class MainWindowViewModel : ObservableObject, INotifyPropertyChan
         _watchdogTimer.Elapsed += OnWatchdogTimer;
         _watchdogTimer.AutoReset = false;
         _watchdogTimer.Enabled = true;
+
+        // 初始化性能计数器
+        _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+        _memoryCounter = new PerformanceCounter("Memory", "% Committed Bytes In Use");
+
+        // 初始化图表数据
+        CpuSeries = new SeriesCollection
+        {
+            new LineSeries
+            {
+                Title = "CPU",
+                Values = new ChartValues<double>(),
+                PointGeometry = null,
+                Fill = new SolidColorBrush(System.Windows.Media.Color.FromArgb(128, 65, 105, 225)), // 半透明的蓝色
+                Stroke = new SolidColorBrush(System.Windows.Media.Color.FromRgb(65, 105, 225))
+            }
+        };
+
+        MemorySeries = new SeriesCollection
+        {
+            new LineSeries
+            {
+                Title = "Memory",
+                Values = new ChartValues<double>(),
+                PointGeometry = null,
+                Fill = new SolidColorBrush(System.Windows.Media.Color.FromArgb(128, 50, 205, 50)), // 半透明的绿色
+                Stroke = new SolidColorBrush(System.Windows.Media.Color.FromRgb(50, 205, 50))
+            }
+        };
+
+        // 创建定时器，每秒更新一次
+        _performanceTimer = new Timer(1000);
+        _performanceTimer.Elapsed += OnPerformanceTimer;
+        _performanceTimer.AutoReset = true;
+        _performanceTimer.Start();
     }
 
     [RelayCommand]
@@ -343,5 +390,49 @@ public partial class MainWindowViewModel : ObservableObject, INotifyPropertyChan
         }
 
         Kill(SelectedProcess);
+    }
+
+    private void OnPerformanceTimer(object sender, ElapsedEventArgs e)
+    {
+        try
+        {
+            // 获取CPU和内存使用率
+            float cpuUsage = _cpuCounter.NextValue();
+            float memoryUsage = _memoryCounter.NextValue();
+
+            // 在UI线程更新图表
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                var cpuValues = (ChartValues<double>)CpuSeries[0].Values;
+                var memValues = (ChartValues<double>)MemorySeries[0].Values;
+
+                // 添加新数据点
+                cpuValues.Add(Math.Round(cpuUsage, 1));
+                memValues.Add(Math.Round(memoryUsage, 1));
+
+                // 保持固定数量的数据点
+                if (cpuValues.Count > MAX_POINTS)
+                {
+                    cpuValues.RemoveAt(0);
+                }
+                if (memValues.Count > MAX_POINTS)
+                {
+                    memValues.RemoveAt(0);
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            OutLog($"性能监控异常: {ex.Message}", "性能监控", ex);
+        }
+    }
+
+    // 在析构函数中释放资源
+    ~MainWindowViewModel()
+    {
+        _watchdogTimer?.Dispose();
+        _performanceTimer?.Dispose();
+        _cpuCounter?.Dispose();
+        _memoryCounter?.Dispose();
     }
 }

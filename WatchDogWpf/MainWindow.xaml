@@ -5,114 +5,366 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WatchDogWpf"
         xmlns:tb="http://www.hardcodet.net/taskbar"
+        xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
         AllowDrop="True"
         Drop="ProcessConfigView_OnDrop"
         Closing="Window_Closing"
-        Title="看门狗" Height="450" Width="800">
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Title="进程监控看门狗" Height="600" Width="1200"
+        Background="Transparent">
+    
+    <!-- 将资源定义移到这里 -->
+    <Window.Resources>
+        
+        <!-- 添加窗口阴影效果 -->
+            <DropShadowEffect x:Key="WindowShadowEffect"
+                              BlurRadius="10"
+                              Direction="0"
+                              ShadowDepth="0"
+                              Opacity="0.3"
+                              Color="#000000"/>
+        <Style x:Key="WindowButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="#666666"/>
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#E5E5E5"/>
+                                <Setter Property="Foreground" Value="#000000"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#CCCCCC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 关闭按钮特殊样式 -->
+        <Style x:Key="CloseButtonStyle" TargetType="Button" BasedOn="{StaticResource WindowButtonStyle}">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E81123"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#8E0914"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
     <Window.DataContext>
         <local:MainWindowViewModel />
     </Window.DataContext>
 
-    <!-- <Window.Resources> -->
-    <!--     <ResourceDictionary.MergedDictionaries> -->
-    <!--         <ResourceDictionary Source="NotifyIconResources.xaml" /> -->
-    <!--     </ResourceDictionary.MergedDictionaries> -->
-    <!-- </Window.Resources> -->
+    <!-- 添加边框和圆角 -->
+    <Border Background="White" 
+            BorderBrush="#DDDDDD"
+            BorderThickness="1"
+            CornerRadius="8"
+            Effect="{StaticResource WindowShadowEffect}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="1*" />
-            <RowDefinition Height="1*" />
-        </Grid.RowDefinitions>
-        <!-- 程序列表 -->
-        <DataGrid Grid.Row="0" AutoGenerateColumns="False"
-                           ItemsSource="{Binding Processes}"
-                           SelectedItem="{Binding SelectedProcess}"
-                           SelectionMode="Single"
-                           SelectionUnit="FullRow"
-                           IsReadOnly="True"
-                           AlternatingRowBackground="#FFFAFAFA"
-                           GridLinesVisibility="None"
-                           HeadersVisibility="Column"
-                           Margin="5">
-            <DataGrid.Columns>
-                <!-- <DataGridCheckBoxColumn Header="启用"  -->
-                <!--                         IsReadOnly="False"  Binding="{Binding  Config.IsEnable, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="40"  /> -->
-                <DataGridTemplateColumn Header="启用" Width="60">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <CheckBox IsChecked="{Binding Config.IsEnable, Mode=TwoWay}"
-                                          Command="{Binding ToggleEnableCommand}">
-                                <!-- <ToggleButton.Style> -->
-                                <!--     <Style TargetType="ToggleButton"> -->
-                                <!--         <Setter Property="Content" Value="禁用"/> -->
-                                <!--         <Style.Triggers> -->
-                                <!--             <DataTrigger Binding="{Binding Config.IsEnable}" Value="True"> -->
-                                <!--                 <Setter Property="Content" Value="启用"/> -->
-                                <!--             </DataTrigger> -->
-                                <!--         </Style.Triggers> -->
-                                <!--     </Style> -->
-                                <!-- </ToggleButton.Style> -->
-                            </CheckBox>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-                <DataGridTextColumn Header="进程标题" Binding="{Binding Config.Title}" Width="*" />
-                <DataGridTextColumn Header="路径" Binding="{Binding Config.AppPath}" Width="2*" />
-                <DataGridTextColumn Header="喂狗模式" Binding="{Binding Config.FeedingMode , Converter={StaticResource EnumValueConverter}}" Width="*" />
-                <DataGridTextColumn Header="启动时间" Binding="{Binding StartTime, StringFormat={}{0:hh\\:mm\\:ss}, TargetNullValue='未启动'}" Width="80" />
-                <DataGridTextColumn Header="运行时长" Binding="{Binding Duration, StringFormat='hh\\:mm\\:ss'}" Width="80" />
-                <DataGridTextColumn Header="启动次数" Binding="{Binding StartCount}" Width="60" />
-                <DataGridTextColumn Header="CPU" Binding="{Binding Cpu}" Width="60" />
-                <DataGridTextColumn Header="内存" Binding="{Binding Memory, StringFormat={}{0:F2}MB}" Width="60" />
-            </DataGrid.Columns>
-            <DataGrid.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Header="添加" Command="{Binding AddCommand}"/>
-                    <MenuItem Header="编辑" Command="{Binding EditCommand}"/>
-                    <MenuItem Header="删除" Command="{Binding DeleteCommand}"/>
-                    <Separator/>
-                    <MenuItem Header="启动" Command="{Binding StartCommand}"/>
-                    <MenuItem Header="重启" Command="{Binding RestartCommand}"/>
-                    <MenuItem Header="强制结束" Command="{Binding StopCommand}"/>
-                    <Separator/>
-                    <MenuItem Header="启用" Command="{Binding EnableCommand}"/>
-                    <MenuItem Header="禁用" Command="{Binding DisableCommand}"/>
-                    <MenuItem Header="切换状态" Command="{Binding  SelectedProcess.ToggleEnableCommand}"/>
-                    <Separator/>
-                    <MenuItem Header="打开程序目录" Command="{Binding OpenDirectoryCommand}"/>
-                </ContextMenu>
-            </DataGrid.ContextMenu>
-        </DataGrid>
+            <!-- 自定义标题栏 -->
+            <Border Grid.Row="0" 
+                    Background="White" 
+                    CornerRadius="8,8,0,0"
+                    MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-        <!-- 程序运行日志 -->
-        <ScrollViewer Grid.Row="1" Grid.Column="0" VerticalScrollBarVisibility="Auto" Background="Black"
-                      ScrollChanged="LogScrollViewer_ScrollChanged">
-            <ItemsControl ItemsSource="{Binding LogEntries}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding}" Foreground="Beige"/>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
-        
-        <!-- <DataGrid Grid.Row="1" AutoGenerateColumns="False" -->
-        <!--                    ItemsSource="{Binding LogEntries}" -->
-        <!--                    IsReadOnly="True" -->
-        <!--                    SelectionMode="Single" -->
-        <!--                    SelectionUnit="FullRow" -->
-        <!--                    AlternatingRowBackground="#FFFAFAFA" -->
-        <!--                    GridLinesVisibility="None" -->
-        <!--                    HeadersVisibility="Column" -->
-        <!--                    Margin="5"> -->
-        <!--     <DataGrid.Columns> -->
-        <!--         <DataGridTextColumn Header="时间" Binding="{Binding Time}" Width="120" /> -->
-        <!--         <DataGridTextColumn Header="类型" Binding="{Binding Type}" Width="120" /> -->
-        <!--         <DataGridTextColumn Header="内容" Binding="{Binding Content}" Width="*" /> -->
-        <!--     </DataGrid.Columns> -->
-        <!-- </DataGrid> -->
-    </Grid>
+                    <!-- Logo和标题 -->
+                    <StackPanel Grid.Column="0" 
+                                Orientation="Horizontal" 
+                                Margin="15,0,0,0">
+                        <!-- Logo -->
+                        <!-- Background="#4B6BFB"  -->
+                        <Border Width="24" Height="24" 
+                                CornerRadius="6"
+                                Margin="0,0,8,0">
+                            <Image Source="Resources/watchDog.png" 
+                                   Width="24" 
+                                   Height="24" 
+                                   Margin="0,0,0,0"/>
+                            <!-- <TextBlock Text="看" -->
+                            <!--          Foreground="White" -->
+                            <!--          FontWeight="Bold" -->
+                            <!--          HorizontalAlignment="Center" -->
+                            <!--          VerticalAlignment="Center"/> -->
+                        </Border>
+                        <!-- 标题文字 -->
+                        <TextBlock Text="看门狗" 
+                                 VerticalAlignment="Center"
+                                 FontSize="16"
+                                 FontWeight="SemiBold"/>
+                    </StackPanel>
+
+                    <!-- 控制按钮 -->
+                    <Button Grid.Column="2" 
+                            Click="MinimizeButton_Click"
+                            Style="{StaticResource WindowButtonStyle}">
+                        <Path Data="M0,0 L8,0" 
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"/>
+                    </Button>
+
+                    <Button Grid.Column="3" 
+                            Click="MaximizeButton_Click"
+                            Style="{StaticResource WindowButtonStyle}">
+                        <Path Data="M0,0 L8,0 L8,8 L0,8 Z" 
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1"
+                              Fill="Transparent"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"/>
+                    </Button>
+
+                    <Button Grid.Column="4" 
+                            Click="CloseButton_Click"
+                            Style="{StaticResource CloseButtonStyle}">
+                        <Path Data="M0,0 L8,8 M0,8 L8,0" 
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"/>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- 主要内容 -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="350"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 左侧内容 -->
+                <Grid Grid.Column="0" Margin="20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="200"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- 标题 -->
+                    <TextBlock Text="进程状态" FontSize="18" Margin="0,0,0,20"/>
+
+                    <!-- 进程列表 -->
+                    <Border Grid.Row="1" Background="White" 
+                            BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="8"
+                            Margin="0,0,0,20">
+                        <Grid Margin="15">
+                            <DataGrid ItemsSource="{Binding Processes}"
+                                      SelectedItem="{Binding SelectedProcess}"
+                                     Background="Transparent"
+                                     BorderThickness="0"
+                                     AutoGenerateColumns="False"
+                                     SelectionMode="Single"
+                                     SelectionUnit="FullRow"  
+                                     IsReadOnly="True"
+                                     AlternatingRowBackground="#FFFAFAFA"
+                                     HeadersVisibility="Column"
+                                     GridLinesVisibility="None">
+                                <DataGrid.Resources>
+                                    <Style TargetType="DataGridColumnHeader">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="Padding" Value="10"/>
+                                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                        <Setter Property="BorderBrush" Value="#E5E5E5"/>
+                                    </Style>
+                                    <Style TargetType="DataGridRow">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                    </Style>
+                                </DataGrid.Resources>
+
+                                <DataGrid.Columns>
+                                    <DataGridTemplateColumn Header="启用" Width="60">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <CheckBox IsChecked="{Binding Config.IsEnable, Mode=TwoWay}"
+                                                        Command="{Binding ToggleEnableCommand}"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTextColumn Header="进程标题" Binding="{Binding Config.Title}" Width="*"/>
+                                    <DataGridTextColumn Header="路径" Binding="{Binding Config.AppPath}" Width="2*"/>
+                                    <DataGridTextColumn Header="喂狗模式" Binding="{Binding Config.FeedingMode, Converter={StaticResource EnumValueConverter}}" Width="*"/>
+                                    <DataGridTextColumn Header="启动时间" Binding="{Binding StartTime, StringFormat={}{0:HH:mm:ss}, TargetNullValue='未启动'}" Width="80"/>
+                                    <DataGridTextColumn Header="运行时长" Binding="{Binding Duration, StringFormat='HH:mm:ss'}" Width="80"/>
+                                    <DataGridTextColumn Header="启动次数" Binding="{Binding StartCount}" Width="60"/>
+                                    <DataGridTextColumn Header="CPU" Binding="{Binding Cpu}" Width="60"/>
+                                    <DataGridTextColumn Header="内存" Binding="{Binding Memory, StringFormat={}{0:F2}MB}" Width="60"/>
+                                    <DataGridTemplateColumn Header="状态" Width="80">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border CornerRadius="4" Padding="8,4">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Process.HasExited}" Value="True">
+                                                                    <Setter Property="Background" Value="#FFEBEE"/>
+                                                                    <Setter Property="TextBlock.Foreground" Value="#F44336"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Process.HasExited}" Value="False">
+                                                                    <Setter Property="Background" Value="#E8F5E9"/>
+                                                                    <Setter Property="TextBlock.Foreground" Value="#4CAF50"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <TextBlock>
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Process.HasExited}" Value="True">
+                                                                        <Setter Property="Text" Value="已停止"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding Process.HasExited}" Value="False">
+                                                                        <Setter Property="Text" Value="运行中"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Border>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                                
+                                <DataGrid.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="添加" Command="{Binding AddCommand}"/>
+                                        <MenuItem Header="编辑" Command="{Binding EditCommand}"/>
+                                        <MenuItem Header="删除" Command="{Binding DeleteCommand}"/>
+                                        <Separator/>
+                                        <MenuItem Header="启动" Command="{Binding StartCommand}"/>
+                                        <MenuItem Header="重启" Command="{Binding RestartCommand}"/>
+                                        <MenuItem Header="强制结束" Command="{Binding StopCommand}"/>
+                                        <Separator/>
+                                        <MenuItem Header="启用" Command="{Binding EnableCommand}"/>
+                                        <MenuItem Header="禁用" Command="{Binding DisableCommand}"/>
+                                        <MenuItem Header="切换状态" Command="{Binding  SelectedProcess.ToggleEnableCommand}"/>
+                                        <Separator/>
+                                        <MenuItem Header="打开程序目录" Command="{Binding OpenDirectoryCommand}"/>
+                                    </ContextMenu>
+                                </DataGrid.ContextMenu>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+
+                    <!-- 控制台 -->
+                    <Border Grid.Row="2" Background="#1E1E2D" CornerRadius="8">
+                        <Grid Margin="15">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- 控制台标题栏 -->
+                            <TextBlock Text="系统控制台" Foreground="White" FontSize="14"/>
+
+                            <!-- 日志内容 -->
+                            <ScrollViewer Grid.Row="1" Margin="0,15,0,0" 
+                                        VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding LogEntries}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" 
+                                                     Foreground="#00FF00"
+                                                     FontFamily="Consolas"
+                                                     Margin="0,2"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <!-- 右侧图表 -->
+                <Grid Grid.Column="1" Margin="0,20,20,20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- 标题 -->
+                    <TextBlock Text="系统资源监控" FontSize="18" Margin="0,0,0,20"/>
+
+                    <!-- CPU使用率图表 -->
+                    <Border Grid.Row="1" Background="White" Margin="0,0,0,20" 
+                            BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="8">
+                        <Grid Margin="15">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="CPU使用率" FontSize="14" Margin="0,0,0,10"/>
+                            <lvc:CartesianChart Grid.Row="1" Series="{Binding CpuSeries}" 
+                                              Height="180">
+                                <lvc:CartesianChart.AxisX>
+                                    <lvc:Axis Title="时间" Foreground="Black"/>
+                                </lvc:CartesianChart.AxisX>
+                                <lvc:CartesianChart.AxisY>
+                                    <lvc:Axis Title="CPU %" Foreground="Black" MinValue="0" MaxValue="100"/>
+                                </lvc:CartesianChart.AxisY>
+                            </lvc:CartesianChart>
+                        </Grid>
+                    </Border>
+
+                    <!-- 内存使用率图表 -->
+                    <Border Grid.Row="2" Background="White" 
+                            BorderBrush="#E5E5E5" BorderThickness="1" CornerRadius="8">
+                        <Grid Margin="15">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="内存使用率" FontSize="14" Margin="0,0,0,10"/>
+                            <lvc:CartesianChart Grid.Row="1" Series="{Binding MemorySeries}"
+                                              Height="180">
+                                <lvc:CartesianChart.AxisX>
+                                    <lvc:Axis Title="时间" Foreground="Black"/>
+                                </lvc:CartesianChart.AxisX>
+                                <lvc:CartesianChart.AxisY>
+                                    <lvc:Axis Title="内存 %" Foreground="Black" MinValue="0" MaxValue="100"/>
+                                </lvc:CartesianChart.AxisY>
+                            </lvc:CartesianChart>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+
 </Window>
